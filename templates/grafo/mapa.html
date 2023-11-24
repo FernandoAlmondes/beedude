@@ -1,0 +1,184 @@
+{% extends 'grafo/base.html' %}
+
+{% block content %}
+
+  <div id="cy"></div>
+
+  <script type="text/javascript">
+    var dados = {{ dados|safe }};
+    console.log(dados)
+
+    var adjusteElementos = dados.elementos.map((elemento) => {
+      if (elemento.node === 1) {
+        if (elemento.status === "1") {
+          return {data: {id: elemento.codigo, label: elemento.label, status: elemento.status, node: elemento.node, color: 'green'}}
+        } else if (elemento.status === "0") {
+          return {data: {id: elemento.codigo, label: elemento.label, status: elemento.status, node: elemento.node, color: 'red'}}
+        } else {
+          return {data: {id: elemento.codigo, label: elemento.label, status: elemento.status, node: elemento.node, color: 'gray'}}
+        }
+      } else {
+          if (elemento.status_item === 1 && (elemento.host_a_status !== "0" || elemento.host_b_status !== "0")) {
+              return {
+                  data: {
+                      id: elemento.codigo,
+                      source: elemento.host_a_id,
+                      target: elemento.host_b_id,
+                      label: elemento.label + "\nOut: " + elemento.rxbits_id + "\nIn: " + elemento.txbits_id + "\nStatus: (" + elemento.status_item + ")",
+                      color: 'green'
+                  }
+              }
+          } else if (elemento.status_item === 2) {
+              return {
+                  data: {
+                      id: elemento.codigo,
+                      source: elemento.host_a_id,
+                      target: elemento.host_b_id,
+                      label: elemento.label + "\nOut: " + elemento.rxbits_id + "\nIn: " + elemento.txbits_id + "\nStatus: (" + elemento.status_item + ")",
+                      color: 'red'
+                  }
+              }
+          } else {
+              return {
+                  data: {
+                      id: elemento.codigo,
+                      source: elemento.host_a_id,
+                      target: elemento.host_b_id,
+                      label: elemento.label + "\nOut: " + elemento.rxbits_id + "\nIn: " + elemento.txbits_id + "\nStatus: (" + elemento.status_item + ")",
+                      color: 'gray'
+                  }
+              }
+          }
+      }
+    });
+
+    elementos = adjusteElementos
+    console.log(elementos)
+
+    var cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements : elementos,
+      layout: { name: 'breadthfirst' },
+      style: [
+      {
+        selector: 'node',
+        style: {
+            'font-weight': 'bold',
+          'background-color': 'data(color)',
+          'label': 'data(label)',
+            'source-label': 'data(id)'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+            'line-color': 'data(color)',
+            'label': 'data(label)',
+            'curve-style': 'bezier',
+            'control-point-distances': 100,
+        }
+      },
+      {
+        selector: 'edge[label]',
+        style: {
+          'color': 'white',
+            'text-background-color': 'data(color)',
+            'text-background-shape': 'round-rectangle',
+            'text-background-padding': '5px',
+            'text-background-opacity': 1,
+            'text-wrap': 'wrap',
+            'font-weight': 'bold'
+          }
+        }
+        ]
+
+    });
+
+    // Função para salvar a posição dos elementos
+    function salvarPosicao() {
+      var posicoes = {};
+      cy.nodes().forEach(function(node) {
+        var id = node.id();
+        var position = node.position();
+        posicoes[id] = position;
+      });
+
+      // Salvar as posições no armazenamento local
+      localStorage.setItem('posicoes', JSON.stringify(posicoes));
+    }
+
+    // Função para carregar as posições salvas
+    function carregarPosicao() {
+      // Obter as posições do armazenamento local
+      var posicoes = localStorage.getItem('posicoes');
+
+      if (posicoes) {
+        posicoes = JSON.parse(posicoes);
+
+        // Definir as posições dos nós no Cytoscape
+        cy.nodes().forEach(function(node) {
+          var id = node.id();
+          var savedPosition = posicoes[id];
+          if (savedPosition) {
+            node.position(savedPosition);
+          }
+        });
+      }
+    }
+
+    // Evento de mudança de posição do nó
+    cy.on('position', 'node', salvarPosicao);
+
+    // Carregar posições salvas ao inicializar
+    carregarPosicao();
+
+    /// ////
+
+    // Adicionar efeito ao passar o mouse sobre um nó
+    cy.on('mouseover', 'node', function(event) {
+      var node = event.target;
+
+      // Aumentar o tamanho do nó e mudar a cor do contorno
+      node.style('border-width', 4);
+      node.style('border-color', 'blue');
+    });
+
+    // Remover efeito ao retirar o mouse do nó
+    cy.on('mouseout', 'node', function(event) {
+      var node = event.target;
+
+      // Restaurar as propriedades originais do nó
+      node.style('border-width', 2);
+      node.style('border-color', 'black');
+    });
+
+    /// ///
+
+    /// Direcionando nodes para o Zabbix ///
+    // Evento de clique em um nó
+    cy.on('tap', 'node', function(event) {
+      var node = event.target;
+
+
+
+    // Criar a URL com base no ID do nó
+        var url = '{{ dados.servidor|safe }}/zabbix.php?filter_custom_time=0&sort=name&sortorder=ASC&show_details=0&action=latest.view&hostids%5B%5D=' + encodeURIComponent(node.id());
+      // Abrir uma nova guia com a URL
+      window.open(url, '_blank');
+
+      // Ou se você preferir abrir na mesma guia, você pode usar window.location.href:
+      // window.location.href = url;
+    });
+
+  </script>
+
+    <script>
+        // Função para recarregar a página a cada 5 segundos
+        function recarregarPagina() {
+            location.reload();
+        }
+        // Configura um temporizador para chamar a função a cada 5 segundos
+        setInterval(recarregarPagina, 5000);
+    </script>
+
+{% endblock %}

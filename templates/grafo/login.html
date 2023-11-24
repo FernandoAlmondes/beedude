@@ -1,0 +1,50 @@
+{% extends 'grafo/base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <!-- Adicione a imagem ao início do card-body -->
+          <div class="card-body text-center">
+              <div class="image-text-container" style="justify-content: center">
+                <img src="https://beesolutions.com.br/static/home/images/bee/so-logo.png" alt="Logo" class="mb-4" style="max-width: 80px;">
+                  <h4 style="color: white">Beedude</h4>
+              </div>
+                <h2 class="card-title">Login</h2>
+            <form method="post" action="{% url 'login' %}" class="needs-validation" novalidate>
+              {% csrf_token %}
+              <div class="mb-3">
+                  {{ form.username.label_tag }}
+                  {{ form.username }}
+                  {{ form.username.errors }}
+              </div>
+              <div class="mb-3">
+                  {{ form.password.label_tag }}
+                  {{ form.password }}
+                  {{ form.password.errors }}
+              </div>
+                <div class="form-group mt-2">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="message">
+                                {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                                <div class="alert alert-danger del-msg" style="margin-top: 10px">{{ message }} </div>
+                                    </div>
+                    {% endif %}
+                            <div class="message">
+                            {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                                <div class="alert alert-success del-msg" style="margin-top: 10px">{{ message }} </div>
+                                </div>
+                    {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+              <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

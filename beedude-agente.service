@@ -1,0 +1,12 @@
+[Unit]
+Description=Beedude Agente
+
+[Service]
+ExecStart=/opt/bee/beedude/venv/bin/python /opt/bee/beedude/beedude-agente-mysql.py
+#ExecStart=/opt/bee/beedude/venv/bin/python /opt/bee/beedude/beedude-agente-pgsql.py
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=default.target

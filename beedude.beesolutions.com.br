@@ -1,0 +1,14 @@
+server {
+    listen 9000;
+    server_name beesoft.topgiga.com.br;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /opt/bee/;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/beedude.sock;
+    }
+}
