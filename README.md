@@ -13,6 +13,8 @@
 - Distribuições homologados (Sistemas Operacionais Linux Server)
 > - Ubuntu Server 22.04 LTS (Ou superior)
 > - Debian 12 (Ou Superior)
+> - PgSQL e MySQL
+> - Zabbix 5.x e Zabbix 6.x
 
 --- ---
 
