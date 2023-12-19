@@ -79,9 +79,15 @@ apt-get update
 apt-get install python3.11 python3.11-dev default-libmysqlclient-dev build-essential sudo pkg-config libpq-dev
 ```
 
-- O Debian 12 já vem com o python 3.11 instalado, então prossiga...
+- O Debian 12 já vem com o python 3.11 instalado (Recomendado), então prossiga...
 - Caso esteja usando Debian 11, pode seguir sempre utilizando "python3-x" que vai funcionar da mesma forma...
 
+- Atenção: Caso esteja utilizando o Debian 11 com python 3.9, utilize os agentes beedude-agente-pgsql-python3.9.py ou beedude-agente-mysql-python3.9.py.
+```shell
+# Esse passo só é necessario se você estiver usando python 3.9.x (python -V)
+mv beedude-agente-mysql-python3.9.py beedude-agente-mysql.py
+mv beedude-agente-pgsql-python3.9.py beedude-agente-pgsql.py
+```
 # Parte 3 - Ambiente virtual e banco de dados #
 
 - Instate o venv para gerenciar ambientes virtuais com Python.
@@ -280,7 +286,7 @@ http://IP-DO-SEU-SERVIDOR:5000/
 http://IP-DO-SEU-SERVIDOR:5000/admin
 ```
 
-# Parte 3 - Fazendo o deploy da aplicação usando Nginx, Gunicorn e Certbot  #
+# Parte 5 - Fazendo o deploy da aplicação usando Nginx, Gunicorn e Certbot  #
 
 - Criando socket (Será usado no proxy reverso com Nginx).
 ```shell
@@ -417,13 +423,13 @@ systemctl restart beedude-server.socket beedude-server.service beedude-agente.se
 service nginx restart
 ```
 
-### Parte 5 - Configurando os Hosts no Zabbix ###
+### Parte 6 - Configurando os Hosts no Zabbix ###
 
 - Configure os hosts do backbone no grupo "BEEDUDE".
 - Radical de nome de item suportado: "Bits r" ou "Bits s" para items de trafego.
 - Radical de nome de item suportado: "status" para items de status de interface.
 
-### Parte 6 - Configurando os Mapas no Django Admin ###
+### Parte 7 - Configurando os Mapas no Django Admin ###
 - Acesse o Djngo Admin e crie um novo Mapa.
 - Após criar um novo mapa, vá até elementos e selecione todos os hosts e clique na opção "Editar em lote", marque mapa e vincule o mapa aos seus hosts. 
 - Nesse momemto você já pode visualizar os hosts no mapa.
@@ -437,10 +443,10 @@ service nginx restart
 --- ---
 
 
-### Parte 7 - Precisa monitorar mais de 10 hosts? - Adquira uma licença ###
+### Parte 8 - Precisa monitorar mais de 10 hosts? - Adquira uma licença ###
 - [Contato Comercial](https://t.me/fernandoalmondes)
 
-### Parte 8 - Comunidade no Telegram e canal do YouTube ###
+### Parte 9 - Comunidade no Telegram e canal do YouTube ###
 
 - [Comunidade no Telegram](https://t.me/beesolutions)
 - [Canal no Youtuve](https://www.youtube.com/beesolutions)
