@@ -1,5 +1,5 @@
 ### --> Beesoft 1.0 (By: Bee Solutions) <-- ###
-### Módulo Beedude ###
+### Módulo Beedude ✅ ###
 --- ---
 # Projeto destinado ao monitoramento de ativos e redes backbone usando mapas de hosts (Integrado ao Zabbix)
 - Python, Django, Javascript e Zabbix
@@ -8,6 +8,7 @@
 > - Desenvolvido por: Bee Solutions
 > - Autor: Fernando Almondes
 > - Principais ferramentas: Python, Django e Zabbix
+> - Novidade: Agora 100% open-source ;)
 --- ---
 
 - Distribuições homologados (Sistemas Operacionais Linux Server)
@@ -19,7 +20,7 @@
 --- ---
 
 - Funcionalidades do Beedude (Versão 1.0 Free):
-> - Até 10 hosts gratuitos (Disponível ✅)
+> - Hosts ilimitados (Disponível ✅)
 > - Status dos hosts (Disponível ✅) 
 > - Status da interface que liga os hosts (Disponível ✅)
 > - Tráfego de in e out da interface que liga os hosts (Disponível ✅)
@@ -82,12 +83,7 @@ apt-get install python3.11 python3.11-dev default-libmysqlclient-dev build-essen
 - O Debian 12 já vem com o python 3.11 instalado (Recomendado), então prossiga...
 - Caso esteja usando Debian 11, pode seguir sempre utilizando "python3-x" que vai funcionar da mesma forma...
 
-- Atenção: Caso esteja utilizando o Debian 11 com python 3.9, utilize os agentes beedude-agente-pgsql-python3.9.py ou beedude-agente-mysql-python3.9.py.
-```shell
-# Esse passo só é necessario se você estiver usando python 3.9.x (python -V)
-mv beedude-agente-mysql-python3.9.py beedude-agente-mysql.py
-mv beedude-agente-pgsql-python3.9.py beedude-agente-pgsql.py
-```
+
 # Parte 3 - Ambiente virtual e banco de dados #
 
 - Instate o venv para gerenciar ambientes virtuais com Python.
@@ -443,7 +439,7 @@ service nginx restart
 --- ---
 
 
-### Parte 8 - Precisa monitorar mais de 10 hosts? - Adquira uma licença ###
+### Parte 8 - Precisa de suporte adicional? ###
 - [Contato Comercial](https://t.me/fernandoalmondes)
 
 ### Parte 9 - Comunidade no Telegram e canal do YouTube ###
@@ -451,6 +447,26 @@ service nginx restart
 - [Comunidade no Telegram](https://t.me/beesolutions)
 - [Canal no Youtuve](https://www.youtube.com/beesolutions)
 
-> Participe e colabore com nossos projetos (Bee Solutions 2023).
+> Participe e colabore com nossos projetos (Bee Solutions 2024).
+
+### Parte 10 - Participe do nosso grupo Pro e contribua com a comunidade ###
+
+📌 Faça parte do canal exclusivo com conteúdos adicionais e atualizados em primeira mão. 📌
+
+Valor da Assinatura: R$9,99
+
+Opções de assinatura (Canal Bee Solutions Pro):
+
+Opção 01 - Mercado Pago
+https://abre.ai/beesolutions
+
+Opção 02 - Mercado Pago Anual (Desconto de -17%)
+https://abre.ai/beeproanual
+
+Opção 03 - Hotmart
+https://hotm.art/beepromensal
+
+Opção 04 - Hotmart Anual (Desconto de -17%)
+https://hotm.art/beeproanual
 
 --- ---
