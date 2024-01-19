@@ -222,9 +222,9 @@ def importa_items():
                 defaults={
                     'itemid': int(row['itemid']),
                     'nome': row['host'] + ' | ' + row['item'],
-                    'status': row['status'] if row['status'] != '' else 1,
-                    'valor': row['valor'] if row['valor'] != '' else 0,
-                    'horario': row['horario'],
+                    'status': row['status'] if row['status'] != 'NULL' else 1,
+                    'valor': row['valor'] if row['valor'] != 'NULL' and row['valor'] != '' else 0,
+                    'horario': row['horario'] if row['valor'] != 'NULL' and row['valor'] != '' else '2000-01-01 00:00:00',
 
                 }
             )

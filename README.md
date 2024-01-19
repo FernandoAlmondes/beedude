@@ -111,12 +111,13 @@ pip install -r dependencias.txt
 mysql -u root -p
 ```
 ```shell
-mysql> create database beesoft_db_01 character set utf8mb4 collate utf8mb4_bin;
+mysql> create database beedude_db_01 character set utf8mb4 collate utf8mb4_bin;
 mysql> create user beesoftadmin@localhost identified by 'AQUI-VOCE-COLOCA-SUA-SUPER-SENHA-PRA-APLICACAO';
-mysql> grant all privileges on beesoft_db_01.* to beesoftadmin@localhost;
+mysql> grant all privileges on beedude_db_01.* to beesoftadmin@localhost;
 
 mysql> create user beesoftconsultor@localhost identified by 'AQUI-VOCE-COLOCA-UMA-SENHA-BOA';
-mysql> grant SELECT on beesoft_db_01.* to beesoftconsultor@localhost;
+mysql> grant SELECT on beedude_db_01.* to beesoftconsultor@localhost;
+mysql> grant SELECT on zabbix.* to beesoftconsultor@localhost;
 mysql> quit
 ```
 --- ---
@@ -379,7 +380,7 @@ server {
 python manage.py collectstatic
 ```
 
-- Protegendo a aplicação com Certbot e Let's Encrypt (Recomendado).
+- Protegendo a aplicação com Certbot e Let's Encrypt (Opcional | Recomendado).
 - Instalando o Certbot.
 ```shell
 apt install certbot python3-certbot-nginx
