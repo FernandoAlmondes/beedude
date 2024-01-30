@@ -354,6 +354,8 @@ WantedBy=default.target
 ```shell
 /opt/bee/beedude/venv/bin/python /opt/bee/beedude/beedude-agente-mysql.py
 ```
+Obs: Você pode parar a execução com: ctrl + c
+--- ---
 
 - Instalando Nginx (Se você já tiver o apache2 rodando ajuste as portas).
 ```shell
