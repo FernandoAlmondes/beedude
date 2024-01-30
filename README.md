@@ -106,7 +106,10 @@ source venv/bin/activate
 pip install -r dependencias.txt
 ```
 
-- Criando database e usuarios do banco de dados (MySQL).
+⚠️ Atenção: Confirme se você está usando o BD do Zabbix com MySQL ou PgSQL. ⚠️
+
+Criando usuário se MySQL:
+- Criando database e usuarios do banco de dados (Banco de Dados do Zabbix com MySQL).
 ```shell
 mysql -u root -p
 ```
@@ -122,12 +125,13 @@ mysql> quit
 ```
 --- ---
 
-- Criando database e usuarios do banco de dados (PgSQL).
+Criando usuário se PgSQL:
+- Criando database e usuarios do banco de dados (Banco de Dados do Zabbix com PgSQL). Atenção: Caso esteja utilizando MySQL pode pular essa parte.⚠️
 ```shell
 sudo -u postgres createuser --pwprompt beesoftadmin
 sudo -u postgres createdb -O beesoftadmin beedude_db_01
 ```
-- Criando usuário de visualização para o banco de dados do Zabbix (PgSQL).
+- Criando usuário de visualização para o banco de dados (Banco de Dados do Zabbix com PgSQL). Atenção: Caso esteja utilizando MySQL pode pular essa parte.⚠️
 
 ```shell
 sudo -u postgres psql
@@ -138,6 +142,8 @@ zabbix=\# GRANT SELECT ON ALL TABLES IN SCHEMA public TO beesoftconsultor;
 zabbix=\# \q
 ```
 --- ---
+
+Continuando após criar os usuários necessários no MySQL ou PgSQL...
 
 - Gere uma chave de segurança para usar no seu settings.py (Guarde essa chave, você a usará em seguida).
 ```shell
@@ -342,6 +348,11 @@ Group=root
 
 [Install]
 WantedBy=default.target
+```
+
+- Realize um teste do beedude-agente.service manualmente para validar (Caso apresente algum erro revise os passos anteriores ou entre em contato com o Fernando.)
+```shell
+/opt/bee/beedude/venv/bin/python /opt/bee/beedude/beedude-agente-mysql.py
 ```
 
 - Instalando Nginx (Se você já tiver o apache2 rodando ajuste as portas).
