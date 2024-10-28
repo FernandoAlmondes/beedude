@@ -14,7 +14,7 @@
 - Distribuições homologados (Sistemas Operacionais Linux Server)
 > - Ubuntu Server 22.04 LTS (Ou superior)
 > - Debian 12 (Ou Superior)
-> - PgSQL e MySQL
+> - MySQL e PgSQL (Em Revisão)
 > - Zabbix 5.x e Zabbix 6.x
 
 --- ---
@@ -125,25 +125,7 @@ mysql> quit
 ```
 --- ---
 
-Criando usuário se PgSQL:
-- Criando database e usuarios do banco de dados (Banco de Dados do Zabbix com PgSQL). Atenção: Caso esteja utilizando MySQL pode pular essa parte.⚠️
-```shell
-sudo -u postgres createuser --pwprompt beesoftadmin
-sudo -u postgres createdb -O beesoftadmin beedude_db_01
-```
-- Criando usuário de visualização para o banco de dados (Banco de Dados do Zabbix com PgSQL). Atenção: Caso esteja utilizando MySQL pode pular essa parte.⚠️
-
-```shell
-sudo -u postgres psql
-
-postgres=\# \c zabbix
-zabbix=\# CREATE USER beesoftconsultor WITH PASSWORD 'AQUI-VOCE-COLOCA-UMA-SENHA-BOA';
-zabbix=\# GRANT SELECT ON ALL TABLES IN SCHEMA public TO beesoftconsultor;
-zabbix=\# \q
-```
---- ---
-
-Continuando após criar os usuários necessários no MySQL ou PgSQL...
+Continuando após criar os usuários necessários no MySQL...
 
 - Gere uma chave de segurança para usar no seu settings.py (Guarde essa chave, você a usará em seguida).
 ```shell
@@ -189,50 +171,6 @@ DB_PORT_ZABBIX=3306
 ############# LICENCA BEEDUDE ##############
 LICENCA_BEEDUDE_KEY=INSIRA-SUA-LICENCA-AQUI-SE-TIVER-UMA
 #########################################
-```
-
-```shell
-nano /opt/bee/beedude/beedude/settings.py
-```
-- Renomei o nome do banco para "default" de acordo com o que voce tiver utilizando (mysql -> default ou pgsql -> default)
-```shell
-# Exemplo Mysql
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-    },'pgsql': {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME'),
-        "USER": config('DB_USER'),
-        "PASSWORD": config('DB_PASSWORD'),
-        "HOST": config('DB_HOST'),
-        "PORT": config('DB_PORT'),
-    }
-}
--
-# Exemplo Postgres
-DATABASES = {
-    'mysql': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-    },'default': {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME'),
-        "USER": config('DB_USER'),
-        "PASSWORD": config('DB_PASSWORD'),
-        "HOST": config('DB_HOST'),
-        "PORT": config('DB_PORT'),
-    }
-}
 ```
 
 - Realizando teste no servidor Django.
@@ -331,7 +269,7 @@ WantedBy=multi-user.target
 
 ```
 
-- Criando serviço para execução em segundo plano do beedude-agente (Ajuste para beedude-agente-pgsql.py se Postgres).
+- Criando serviço para execução em segundo plano do beedude-agente.
 ```shell
 nano /etc/systemd/system/beedude-agente.service
 ```
@@ -341,7 +279,6 @@ Description=Beedude Agente
 
 [Service]
 ExecStart=/opt/bee/beedude/venv/bin/python /opt/bee/beedude/beedude-agente-mysql.py
-#ExecStart=/opt/bee/beedude/venv/bin/python /opt/bee/beedude/beedude-agente-pgsql.py
 Restart=always
 User=root
 Group=root

@@ -234,9 +234,9 @@ def executa_atualizacao():
         importa_hosts()
         importa_items()
         print('\n--------------------------------------------------------------------')
-        print('\n--> Aguardando 10 segundos ate a nova consulta...')
+        print('\n--> Aguardando 5 minutos ate a nova consulta...')
         print('\n--------------------------------------------------------------------')
-        sleep(10)
+        sleep(300)
 
 executa_atualizacao()
 

@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'beedude.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# Renomei o nome do banco para default de acordo com o que voce tiver utilizando (mysql -> default ou pgsql -> default)
+# Renomei o nome do banco para default de acordo com o que voce tiver utilizando (mysql -> default)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -76,13 +76,6 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
-    },'pgsql': {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME'),
-        "USER": config('DB_USER'),
-        "PASSWORD": config('DB_PASSWORD'),
-        "HOST": config('DB_HOST'),
-        "PORT": config('DB_PORT'),
     }
 }
 
