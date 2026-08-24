@@ -1,0 +1,46 @@
+<div class="col-md-6">
+    <div class="row g-0 align-items-center">
+        <div class="col-md-4 mb-0">
+            <label for="filtrar_itens" class="form-label">Lista de Itens</label>
+        </div>
+        <div class="col-md-8 mt-0 mb-1">
+            <input hx-post="{% url 'consulta_itens' %}" hx-vals='{"elementoid": "{{elementoid}}", "elemento": "{{elemento}}"}' hx-target="#itens" hx-swap="outerHTML" hx-trigger="input changed delay:1s" id="filtrar_itens" class="form-control" type="text" name="filtrar_itens" style="font-family:Arial, FontAwesome" placeholder=" &#xF002; Filtrar Itens">
+        </div>
+    </div>
+    <!--Aqui vai a o meu select de itens filtrado-->
+    <select class="form-select" multiple name="itens" id="itens">
+        {% for i in itens %}
+            <option value="{{i.itemid}}">{{i.nome}}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-md-6">
+    <div class="row g-0 align-items-end">
+        <div class="col-md-4">
+            <label for="filtrar_triggers" class="form-label">Lista de Triggers</label>
+        </div>
+        <div class="col-md-8 mb-1">
+            <input hx-post="{% url 'consulta_triggers' %}" hx-vals='{"elementoid": "{{elementoid}}", "elemento": "{{elemento}}"}' hx-target="#triggers" hx-swap="outerHTML" hx-trigger="input changed delay:1s" id="filtrar_triggers" class="form-control" type="text" name="filtrar_triggers" style="font-family:Arial, FontAwesome" placeholder=" &#xF002; Filtrar Triggers">
+        </div>
+    </div>
+    <!--Aqui vai a o meu select de triggers filtrado-->
+    <select class="form-select" multiple name="triggers" id="triggers">
+        {% for t in triggers %}
+            <option value="{{t.triggerid}}">{{t.nome}}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-md-12">
+    <label class="form-label">Operador</label>
+    <select class="form-select" name="modo" required id="modo">
+        <option selected value="any">Any</option>
+        <option value="all">All</option>
+    </select>
+</div>
+
+<div class="col-md-6">
+    <button id="botao_salvar_form_revisao" class="btn btn-success w-100" value="salvar" name="action" type="submit"><i class="fa-solid fa-save"></i> Salvar</button>
+</div>
+<div class="col-md-6">
+    <button id="botao_cancelar_form_revisao" class="btn btn-secondary w-100" type="button" data-bs-dismiss="modal" style="background-color: #334155;"><i class="fa-solid fa-close"></i> Fechar</button>
+</div>

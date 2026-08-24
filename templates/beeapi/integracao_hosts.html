@@ -1,0 +1,8 @@
+
+<label class="form-label">Selecione um Host</label>
+<select hx-get="{% url 'consulta_itens_triggers' %}?elementoid={{elementoid}}&elemento={{elemento}}" hx-swap="innerHTML" hx-trigger="change" hx-target="#select_itens_triggers" class="form-select" name="hosts" required id="hosts">
+    <option selected value="">---</option>
+    {% for h in hosts %}
+        <option value="{{h.hostid}}">{{h.nome}}</option>
+    {% endfor %}
+</select>

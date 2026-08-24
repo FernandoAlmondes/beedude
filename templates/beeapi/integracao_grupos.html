@@ -1,0 +1,14 @@
+
+<div class="row g-2 mt-1">
+
+    <div class="col-md-12">
+        <label class="form-label">Selecione um Grupo</label>
+        <select hx-get="{% url 'consulta_hosts' %}?elementoid={{elementoid}}&elemento={{elemento}}" hx-swap="innerHTML" hx-trigger="change" hx-target="#select_hosts" class="form-select" name="grupos" required id="grupos">
+            <option selected value="">---</option>
+            {% for g in grupos %}
+                <option value="{{g.groupid}}">{{g.nome}}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+</div>

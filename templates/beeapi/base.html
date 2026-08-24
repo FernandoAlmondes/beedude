@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    {% load static %}
+
+    <title>Beedude2 - Bee Solutions</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.33.1/cytoscape.min.js" integrity="sha512-kHAY8XzRfLVMcLuowdk91552RD+Nb2/1uHamfHMdLejNqlZnbEJLl1wYnsNnqIFCEZ++WaOcOlfokC6p9JWrLw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <link rel="icon" href="https://beesolutions.com.br/static/home/images/img/favicon/logo.png" type="image/x-icon">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://beesolutions.com.br/static/home/images/img/favicon/logo.png">
+
+    <!--
+    <script src="{% static 'beeapi/app.js' %}"></script>
+    -->
+
+    <style>
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #cy {
+            flex: 1;
+        }
+
+        #cy-menu {
+            min-width: 180px;
+        }
+
+        #core {
+        min-height: 0;
+        flex: 1;
+        display: flex;      /* importante */
+        overflow: hidden;   /* evita scroll extra */
+
+        /* grade */
+        background-image:
+            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        }
+
+        /* erros no form */
+        .form-erros input {
+            border-color: red;
+        }
+        .form-erros textarea {
+            border-color: red;
+        }
+        .form-erros .errorlist {
+            color: red;
+        }
+
+    </style>
+
+<meta name="csrf_token" content="{{ csrf_token }}">
+
+</head>
+<body class="d-flex flex-column min-vh-100 bg-dark text-light" data-bs-theme="dark" oncontextmenu="return false;">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg border-bottom border-secondary bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
+                <img class="me-2" src="https://beesolutions.com.br/static/home/images/bee/so-logo.png" alt="Beedude2" width="54" height="54">
+                Beedude2
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBarPrincipal" aria-controls="navBarPrincipal" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navBarPrincipal">
+                {% if request.user.is_authenticated %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <input hidden type="text" name="mapaid" id="mapaid" value="{{mapa.id}}">
+                    {% if perms.beeapi.view_mapa %}
+                    <li class="nav-item">
+                    <a class="nav-link text-decoration-underline" hx-get="{% url 'mapa_listagem' %}" hx-target="#modal-content" hx-swap="innerHTML" aria-current="page" href="">Mapas</a>
+                    </li>
+                    {% endif %}
+                    {% if mapa and perms.beeapi.view_node %}
+                    <li class="nav-item">
+                    <a class="nav-link text-decoration-underline" hx-get="{% url 'node_listagem' %}" hx-include="#mapaid" hx-target="#modal-content" id="node-listagem" hx-swap="innerHTML" href="">Nodes</a>
+                    </li>
+                    {% endif %}
+                    {% if mapa and perms.beeapi.view_edge %}
+                    <li class="nav-item">
+                    <a class="nav-link text-decoration-underline" hx-get="{% url 'edge_listagem' %}" hx-include="#mapaid" hx-target="#modal-content" hx-swap="innerHTML" href="">Edges</a>
+                    </li>
+                    {% endif %}
+                    {% if mapa and perms.beeapi.change_mapa %}
+                    <li class="nav-item">
+                    <button class="nav-link text-decoration-underline" id="modo-edicao">Modo Edição</button>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% endif %}
+                {% if request.user.is_authenticated %}
+                <div class="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
+                    <span class="navbar-text">
+                    Olá {{ request.user.username }}.
+                    </span>
+
+                    <a class="nav-link text-decoration-underline" href="/admin" target="_blank">
+                    Admin
+                    </a>
+
+                    <a class="nav-link text-decoration-underline" href="{% url 'logout' %}">
+                    Logout
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Container Principal -->
+    <main id="core" class="container-fluid py-0 canvas-grid flex-grow-1">
+
+        {% block content %}
+
+        {% endblock %}
+    
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-dark border-top border-secondary py-4">
+        <div class="container">
+        <div class="text-secondary small text-center">
+            <a class="text-secondary text-decoration-none" href="https://beesolutions.com.br/" target="_blank">
+                © 2026 — Bee Solutions (Fernando Almondes)
+            </a>
+        </div>
+        </div>
+    </footer>
+
+</body>
+</html>

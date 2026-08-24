@@ -1,0 +1,965 @@
+
+{% extends 'beeapi/base.html' %}
+
+{% block content %}
+
+<!--Mapa cytoscape -->
+
+<div id="cy"
+{% if mapa %}
+    hx-get="{% url 'dados' mapa.id %}"
+    hx-trigger="load, atualiza from:body, every 5s"
+    hx-swap="none"
+{% endif %}
+    >
+</div>
+
+<!-- Modal Nodes e Labels -->
+<div class="modal fade modal-xl" id="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div id="modal-content" class="modal-content">
+        
+        </div>
+    </div>
+</div>
+
+<!-- Modal Integracao -->
+<div class="modal fade modal-xl" id="modal-integracao" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div id="modal-content2" class="modal-content">
+            <div id="div-busca">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Grafico -->
+<div class="modal fade" id="modal-grafico" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div id="modal-content3" class="modal-content">
+        
+        </div>
+    </div>
+</div>
+
+<!-- Menu ao clicar botao direito do mouse no node -->
+<div
+  id="cy-menu-node"
+  class="dropdown-menu show"
+  style="position: absolute; display: none; z-index: 1050;"
+>
+  <button type="button" id="btn_integra_node" class="dropdown-item">
+    <i class="fa fa-link"></i> Integrar
+  </button>
+  <button hx-get="{% url 'edge_add' %}?mapaid={{mapa.id}}" hx-swap="innerHTML" hx-target="#modal-content" hx-trigger="click" class="dropdown-item edge-add" id="btn-criar-edge">
+    <i class="fa-solid fa-arrow-up-right-from-square"></i> Criar ligação
+  </button>
+  <button id="btn_edit_node" class="dropdown-item">
+    <i class="fa fa-edit"></i> Editar
+  </button>
+    <button id="btn_remove_node" class="dropdown-item">
+    <i class="fa fa-trash"></i> Remover
+  </button>
+</div>
+
+<!-- Menu ao clicar com botao direito do mouse no edge -->
+<div
+  id="cy-menu-edge"
+  class="dropdown-menu show"
+  style="position: absolute; display: none; z-index: 1050;"
+>
+  <button type="button" id="btn_integra_edge" class="dropdown-item">
+    <i class="fa fa-link"></i> Integrar
+  </button>
+  <button id="btn_edit_edge" class="dropdown-item">
+    <i class="fa fa-edit"></i> Editar
+  </button>
+    <button id="btn_remove_edge" class="dropdown-item">
+    <i class="fa fa-trash"></i> Remover
+  </button>
+</div>
+
+<!-- Menu ao clicar botao direito do mouse solto -->
+<div
+  id="cy-menu-geral"
+  class="dropdown-menu show"
+  style="position: absolute; display: none; z-index: 1050;"
+>
+  <button hx-get="{% url 'node_add' %}?mapaid={{mapa.id}}" hx-swap="innerHTML" hx-target="#modal-content" hx-trigger="click" class="dropdown-item" id="btn-criar-node">
+    <i class="fa-solid fa-arrow-up-right-from-square"></i> Criar node
+  </button>
+  <button hx-get="{% url 'edge_add' %}?mapaid={{mapa.id}}" hx-swap="innerHTML" hx-target="#modal-content" hx-trigger="click" class="dropdown-item edge-add" id="btn-criar-edge2">
+    <i class="fa-solid fa-arrow-up-right-from-square"></i> Criar ligação
+  </button>
+</div>
+
+<!-- Toast Bootstrap -->
+<div id="container-toast" class="toast-container position-fixed bottom-0 end-0 mb-5 pb-4"></div>
+
+<script>
+
+    // Definicao dos icones disponiveis em svg
+    const svg = {
+        'bee-server': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 840 840"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill='#ffffff' d="M160 96C124.7 96 96 124.7 96 160L96 224C96 259.3 124.7 288 160 288L480 288C515.3 288 544 259.3 544 224L544 160C544 124.7 515.3 96 480 96L160 96zM376 168C389.3 168 400 178.7 400 192C400 205.3 389.3 216 376 216C362.7 216 352 205.3 352 192C352 178.7 362.7 168 376 168zM432 192C432 178.7 442.7 168 456 168C469.3 168 480 178.7 480 192C480 205.3 469.3 216 456 216C442.7 216 432 205.3 432 192zM160 352C124.7 352 96 380.7 96 416L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 416C544 380.7 515.3 352 480 352L160 352zM376 424C389.3 424 400 434.7 400 448C400 461.3 389.3 472 376 472C362.7 472 352 461.3 352 448C352 434.7 362.7 424 376 424zM432 448C432 434.7 442.7 424 456 424C469.3 424 480 434.7 480 448C480 461.3 469.3 472 456 472C442.7 472 432 461.3 432 448z"/></svg>`,
+        'bee-router': `<svg fill="#ffffff" width="36" height="36" viewBox="0 0 48 48" version="1.1"  preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>router-solid</title> <path d="M18,1.67a16,16,0,1,0,16,16A16,16,0,0,0,18,1.67ZM13.86,9.92a.8.8,0,0,1,1.13,0l2.21,2.19V5.93a.8.8,0,0,1,1.6,0v6.18L21,9.92a.8.8,0,1,1,1.13,1.14L18,15.15l-4.14-4.1A.8.8,0,0,1,13.86,9.92ZM10.32,21.74a.8.8,0,0,1-1.13,0L5,17.67l4.19-4.09a.8.8,0,1,1,1.12,1.14l-2.2,2.14h6.27a.8.8,0,0,1,0,1.6H8.11l2.2,2.15A.8.8,0,0,1,10.32,21.74Zm11.82,3.67a.8.8,0,0,1-1.13,0L18.8,23.23V29.4a.8.8,0,0,1-1.6,0V23.23L15,25.42a.8.8,0,1,1-1.13-1.14L18,20.18l4.14,4.1A.8.8,0,0,1,22.14,25.41Zm4.67-3.66a.8.8,0,1,1-1.12-1.14l2.2-2.15H21.63a.8.8,0,0,1,0-1.6h6.27l-2.2-2.14a.8.8,0,1,1,1.12-1.14L31,17.67Z"/></svg>`,
+        'bee-switch': `<svg fill="#ffffff" width="36" height="36" viewBox="0 0 48 48" version="1.1"  preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>network-switch-solid</title><path d="M33.91,18.47,30.78,8.41A2,2,0,0,0,28.87,7H7.13A2,2,0,0,0,5.22,8.41L2.09,18.48a2,2,0,0,0-.09.59V27a2,2,0,0,0,2,2H32a2,2,0,0,0,2-2V19.06A2,2,0,0,0,33.91,18.47ZM8.92,25H7.12V22h1.8Zm5,0h-1.8V22h1.8Zm5,0h-1.8V22h1.8Zm5,0H22.1V22h1.8Zm5,0H27.1V22h1.8ZM31,19.4H5V18H31Z"/></svg>`,
+        'bee-network-wired': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 840 840"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill='#ffffff' d="M280 152L360 152L360 200L280 200L280 152zM272 96C245.5 96 224 117.5 224 144L224 208C224 234.5 245.5 256 272 256L288 256L288 288L64 288C46.3 288 32 302.3 32 320C32 337.7 46.3 352 64 352L160 352L160 384L144 384C117.5 384 96 405.5 96 432L96 496C96 522.5 117.5 544 144 544L240 544C266.5 544 288 522.5 288 496L288 432C288 405.5 266.5 384 240 384L224 384L224 352L416 352L416 384L400 384C373.5 384 352 405.5 352 432L352 496C352 522.5 373.5 544 400 544L496 544C522.5 544 544 522.5 544 496L544 432C544 405.5 522.5 384 496 384L480 384L480 352L576 352C593.7 352 608 337.7 608 320C608 302.3 593.7 288 576 288L352 288L352 256L368 256C394.5 256 416 234.5 416 208L416 144C416 117.5 394.5 96 368 96L272 96zM480 440L488 440L488 488L408 488L408 440L480 440zM224 440L232 440L232 488L152 488L152 440L224 440z"/></svg>`,
+        'bee-circle-dot': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 840 840"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill='#ffffff' d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 112C205.1 112 112 205.1 112 320C112 434.9 205.1 528 320 528C434.9 528 528 434.9 528 320C528 205.1 434.9 112 320 112zM320 416C267 416 224 373 224 320C224 267 267 224 320 224C373 224 416 267 416 320C416 373 373 416 320 416z"/></svg>`,
+        'bee-cloud': `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 840 840"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill='#ffffff' d="M112 256C112 167.6 183.6 96 272 96C319.1 96 361.4 116.4 390.7 148.7C401.3 145.6 412.5 144 424 144C490.3 144 544 197.7 544 264C544 277.2 541.9 289.9 537.9 301.8C579.5 322.9 608 366.1 608 416C608 486.7 550.7 544 480 544L176 544C96.5 544 32 479.5 32 400C32 343.2 64.9 294.1 112.7 270.6C112.3 265.8 112 260.9 112 256zM272 144C210.1 144 160 194.1 160 256C160 264.4 160.9 272.6 162.7 280.5C165.4 292.6 158.4 304.8 146.6 308.6C107.9 321 80 357.3 80 400C80 453 123 496 176 496L480 496C524.2 496 560 460.2 560 416C560 378.6 534.3 347.1 499.5 338.4C492 336.5 485.9 331.2 483 324.1C480.1 317 480.9 308.9 485 302.4C492 291.3 496 278.2 496 264.1C496 224.3 463.8 192.1 424 192.1C412.9 192.1 402.5 194.6 393.2 199C382.7 204 370.1 200.7 363.4 191.2C343.1 162.6 309.7 144.1 272.1 144.1z"/></svg>`
+    };
+
+    // Encode do sgv para o formato aceito pelo Cytoscape
+    function selecionaIcone(icone) {
+        const svgContent = svg[icone] || svg['fa-server'];
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgContent);
+    }
+
+    const cy = cytoscape({
+        container: document.getElementById('cy'),
+        'elements': [],
+        "style": [
+            {
+                "selector": "node",
+                "style": {
+                    'shape': 'round-rectangle',
+                    'width': '120px',
+                    'height': '60px',
+                    'background-color': '#0f172a', // Fundo azul/preto do box
+                    'border-width': 1,
+                    'border-color': '#4ade80',    // Verde neon
+                    'label': 'data(nome)',
+                    'color': '#ffffff', // Cor do texto
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-size': '12px',
+                    'text-margin-y': 20,
+
+                    // Icone
+                    'background-image': ele => selecionaIcone(ele.data('icone') || 'bee-server'),
+                    'background-fit': 'none',
+                    'background-width': 50,
+                    'background-height': 50,
+                    'background-offset-x': '6%',
+                    'padding-bottom': '6px',
+                    'z-index': 1 // Sempre acima dos outros nodes
+
+                }
+            },
+            {
+                "selector": 'node[status = "erro"]',
+                "style": {
+                    'shape': 'round-rectangle',
+                    'width': '120px',
+                    'height': '60px',
+                    'background-color': '#343a40', // Fundo cinza moderno
+                    'border-width': 1,
+                    'border-color': '#032830',    // Verde neon
+                    'label': 'data(nome)',
+                    'color': '#ffffff', // Cor do texto
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-size': '12px',
+                    'text-margin-y': 20,
+
+                    // Icone
+                    'background-image': ele => selecionaIcone(ele.data('icone') || 'bee-server'),
+                    'background-fit': 'none',
+                    'background-width': 50,
+                    'background-height': 50,
+                    'background-offset-x': '6%',
+                    'padding-bottom': '6px',
+                    'z-index': 1 // Sempre acima dos outros nodes
+
+                }
+            },
+            {
+                "selector": 'node[status = "down"]',
+                "style": {
+                    "shape": "round-rectangle",
+                    "width": "120px",
+                    "height": "60px",
+                    "background-color": "#ef4444",
+                    "border-width": 1,
+                    "border-color": "red",
+                    "label": "data(nome)",
+                    "color": "#ffffff", // Cor do texto
+                    "text-valign": "center",
+                    "text-halign": "center",
+                    "font-size": "12px",
+                    "text-margin-y": 20,
+
+                    // Icone
+                    'background-image': ele => selecionaIcone(ele.data('icone') || 'bee-server'),
+                    'background-fit': 'none',
+                    'background-width': 50,
+                    'background-height': 50,
+                    'background-offset-x': '6%',
+                    'padding-bottom': '6px',
+                    'z-index': 1 // Sempre acima dos outros nodes
+                }
+            },
+            {
+                "selector": 'node.label',
+                "style": {
+                    "shape": "rectangle",
+                    //"width": "60px",
+                    //"height": "40px",
+                    //"opacity": 1,
+                    "padding": "0px",
+                    "text-wrap": "wrap",
+                    "font-weight": "bold",
+                    "control-point-step-size": 100,
+                    "label": ele => ele.data('label') || ele.data('nome'),
+                    "color": "#4ade80", // Cor do texto
+                    "font-size": "12px",
+                    'background-opacity': 1, // Opacidade do fundo
+                    'background-image': 'none',
+                    "background-color": "#1a1b26", // Cor do fundo
+                    "text-background-color": "#0f172a",
+                    "text-background-opacity": 0,
+                    "text-background-padding": "10px",
+                    "text-border-width": 0,
+                    "text-border-color": "#0f172a",
+                    "text-border-opacity": 0.5,
+                    'text-max-width': 120, // Quebra de linha
+                    'text-rotation': 'autorotate', // Quebra de linha
+                    'text-margin-y': -1,
+                    'text-margin-x': 0,
+                    'z-index': 1 // Sempre acima dos outros nodes
+                }
+            },
+            {
+                "selector": 'node.nota',
+                "style": {
+                    "shape": "rectangle",
+                    "width": "180px",
+                    "height": "40px",
+                    //"opacity": 1,
+                    "padding": "0px",
+                    "text-wrap": "wrap",
+                    "font-weight": "bold",
+                    "control-point-step-size": 100,
+                    "label": ele => ele.data('label') || ele.data('nome'),
+                    "color": "#ffffff", // Cor do texto
+                    "font-size": "12px",
+                    'background-opacity': 1, // Opacidade do fundo
+                    'background-image': 'none',
+                    "background-color": "#343a40", // Cor do fundo
+                    "text-background-color": "#0f172a",
+                    "text-background-opacity": 0,
+                    "text-background-padding": "10px",
+                    "text-border-width": 0,
+                    "text-border-color": "#0f172a",
+                    "text-border-opacity": 0.5,
+                    'text-max-width': 180, // Quebra de linha
+                    'text-rotation': 'autorotate', // Quebra de linha
+                    'text-margin-y': -1,
+                    'text-margin-x': 0,
+                    'z-index': 1 // Sempre acima dos outros nodes
+                }
+            },
+            {
+                "selector": 'node.label[status = "up"]',
+                "style": {
+                    "shape": "rectangle",
+                    //"width": "60px",
+                    //"height": "40px",
+                    //"opacity": 1,
+                    "padding": "0px",
+                    "text-wrap": "wrap",
+                    "font-weight": "bold",
+                    "control-point-step-size": 100,
+                    "label": ele => ele.data('label') || ele.data('nome'),
+                    "color": "#ffffff", // Cor do texto
+                    "font-size": "12px",
+                    'background-opacity': 1, // Opacidade do fundo
+                    'background-image': 'none',
+                    "background-color": "#1a1b26", // Cor do fundo
+                    "text-background-color": "#0f172a",
+                    "text-background-opacity": 0,
+                    "text-background-padding": "10px",
+                    "text-border-width": 0,
+                    "text-border-color": "#0f172a",
+                    "text-border-opacity": 0.5,
+                    'text-max-width': 120, // Quebra de linha
+                    'text-rotation': 'autorotate', // Quebra de linha
+                    'text-margin-y': -1,
+                    'text-margin-x': 0,
+                    'z-index': 1 // Sempre acima dos outros nodes
+                }
+            },
+            {
+                "selector": 'node.label[status = "down"]',
+                "style": {
+                    "shape": "rectangle",
+                    //"width": "60px",
+                    //"height": "40px",
+                    "opacity": 0.6,
+                    "padding": "0px",
+                    "text-wrap": "wrap",
+                    "font-weight": "bold",
+                    "control-point-step-size": 100,
+                    "label": ele => ele.data('label') || ele.data('nome'),
+                    "color": "#ffffff", // Cor do texto
+                    "font-size": "12px",
+                    'background-opacity': 1,
+                    'background-image': 'none',
+                    "background-color": "#ef4444",
+                    "text-background-color": "red",
+                    "text-background-opacity": 0,
+                    "text-background-padding": "10px",
+                    "text-border-width": 0,
+                    "text-border-color": "#4ade80",
+                    "text-border-opacity": 0.5,
+                    'text-max-width': 120, // Quebra de linha
+                    'text-rotation': 'autorotate', // Quebra de linha
+                    'text-margin-y': -1,
+                    'text-margin-x': 0,
+                    'z-index': 1 // Sempre acima dos outros nodes
+                }
+            },
+            {
+                "selector": 'node.marcador', // Marcador no formato de ponto
+                "style": {
+                    "width": "10px",
+                    "height": "10px",
+                    "label": "",
+                    'border-width': 0,
+
+                    // Icone
+                    'background-image': selecionaIcone('bee-circle-dot'),
+                    'background-image-opacity': 1,
+                    'background-fit': 'none',
+                    'background-width': 'auto',
+                    'background-height': 'auto',
+                    'background-offset-x': '0',
+                    'background-offset-y': '0',
+                    'background-position-x': '0',
+                    'background-position-y': '0',
+                    'background-opacity': 0,
+                    'z-index': 0 // Sempre abaixo dos outros nodes
+                }
+            },
+            {
+                "selector": "edge",
+                "style": {
+                    "width": 3,
+                    "line-color": "#4ade80",
+                    "line-style": "dashed",
+                    "curve-style": "bezier",
+                    "target-arrow-shape": "none",
+                    "padding": "5px",
+                    "text-wrap": "wrap",
+                    "font-weight": "bold",
+                    "control-point-step-size": 100,
+                    "label": ele => ele.data('label'),
+                    "color": "#ffffff", // Cor do texto
+                    "font-size": "10px",
+                    "text-background-color": "#1a1b26",
+                    "text-background-opacity": 1,
+                    "text-background-padding": "10px",
+                    "text-background-shape": "roundrectangle",
+                    "text-border-width": 1,
+                    "text-border-color": "#4ade80",
+                    "text-border-opacity": 0.5,
+                    'text-max-width': 120, // Quebra de linha
+                    "z-index": 999
+                    //'text-rotation': 'autorotate' // Quebra de linha
+                }
+            },
+            {
+                "selector": 'edge[status = "down"]',
+                "style": {
+                    "label": ele => ele.data('label'),
+                    "line-color": "#ef4444",
+                    "line-style": "solid",
+                    "color": "#ffffff", // Cor do texto
+                    "text-background-color": "#66211d",
+                    "text-border-color": "#ef4444",
+                    "z-index": 999
+                }
+            },
+            {
+                "selector": 'edge[status = "erro"]',
+                "style": {
+                    "width": 3,
+                    "label": ele => ele.data('label'),
+                    "line-color": "gray",
+                    "line-style": "solid",
+                    "color": "#ffffff", // Cor do texto
+                    "text-border-color": "gray",
+                    "z-index": 999
+                }
+            }
+        ],
+        "layout": {
+            name: 'breadthfirst', // Organiza hierarquicamente (arvore)
+            directed: true,
+            padding: 50,
+            spacingFactor: 1.5
+        }
+    });
+
+    // Atualizacao quando trocamos de mapa manualmente
+    function trocarMapa(id){
+        //console.log('Trocando para o mapa:', id);
+
+        // Atualizando o valor de mapaid
+        document.getElementById('mapaid').value = id;
+
+        let el = document.getElementById("cy");
+        el.setAttribute("hx-get", `/beedude/dados/${id}`);
+
+        let botao_criar_node = document.getElementById("btn-criar-node");
+        botao_criar_node.setAttribute("hx-get", `{% url 'node_add' %}?mapaid=${id}`);
+        htmx.process(botao_criar_node);
+
+        //let botao_criar_edge = document.getElementById("btn-criar-edge2");
+        //botao_criar_edge.setAttribute("hx-get", `{% url 'edge_add' %}?mapaid=${id}`);
+        //htmx.process(botao_criar_edge);
+
+        document.querySelectorAll('.edge-add').forEach(d => {
+            //console.log(d);
+            d.setAttribute("hx-get", `{% url 'edge_add' %}?mapaid=${id}`);
+            htmx.process(d);
+        });
+
+        htmx.process(el);
+        htmx.trigger(el, 'atualiza');
+
+    }
+
+    // Atualizacao automatica
+    document.getElementById('cy').addEventListener('htmx:afterRequest', (e) => {
+        if (e.detail.xhr.status !== 200) return;
+
+        const elementos = JSON.parse(e.detail.xhr.responseText);
+        
+        //console.log('Elementos:', elementos.nodes)
+        //const teste = Array(elementos.nodes)
+        //teste.forEach(d => {
+        //    console.log(d[0].data.mapa_id);
+        //});
+
+        //console.log('Permissoes:', elementos.permissoes);
+
+        // Se usuario nao tiver permissao de edicao o mapa fica so como view
+        const permissao = elementos.permissao;
+
+        //elementos.permissoes.forEach(d => {
+        //    console.log('Usuario com permissao de:', d.role);
+        //    role = d.role;
+        //});
+
+        //console.log('Usuario com permissao de:', permissao);
+
+        if (permissao === 'edit'){
+            cy.autoungrabify(false); // Desbloqueia edicao
+            cy.autounselectify(false); // Desbloqueia selecao
+            //cy.on("tap"); // Desbloqueia eventos de clique
+            cy.on("cxttapstart"); // Liberando o menu de contexto dos elementos
+            cy.on("cxttap"); // Liberando o menu de contexto geral
+        } else {
+            cy.autoungrabify(true); // Bloqueia edicao
+            cy.autounselectify(true); // Bloqueia selecao
+            //cy.removeListener("tap"); // Bloqueia eventos de clique
+            cy.removeListener("cxttapstart"); // Bloqueando o menu de contexto dos elementos
+            cy.removeListener("cxttap"); // Bloqueando o menu de contexto geral
+        }
+        //
+
+        cy.json({ elements: elementos });
+        fitSeguro(1);
+        //cy.fit();
+        //cy.zoom(0.7);
+        cy.pan({ x: 0, y: 0 });
+        cy.center();
+
+        animateFlowByStatus(); // Animacao para rota down
+        animateNodeByStatus(); // Animacao para node down
+
+    });
+
+    // Limitando o maximo do zoom fit
+    function fitSeguro(maxZoom = 1) {
+        cy.fit();
+        cy.zoom(Math.min(cy.zoom(), maxZoom));
+    }
+
+    // Limitando min e maximo do zoom
+    cy.minZoom(0.5);
+    cy.maxZoom(1);
+    
+    // Exemplo de evento sendo enviado pelo django apos uma requisicao (cabecalho do htmx)
+    addEventListener('atualiza', (e) =>{
+
+        //console.log('Mandou salvar algo.');
+
+    });
+
+    // Clique no node para editar
+    cy.on('tap', 'node', (e)=>{
+        //console.log('Clicou no node com id:', e.target.id());
+        //console.log(e.target.position());
+
+        // Enviando get para o django
+        htmx.ajax('GET', `/beedude/nodes/${e.target.id()}`, {
+            target: '#modal-content',
+            swap: 'innerHTML'
+        });
+
+    });
+
+    // Clique no edge para editar
+    cy.on('tap', 'edge', (e)=>{
+        //console.log('Clicou no edge com id:', e.target.id())
+
+        // Enviando get para o django
+        htmx.ajax('GET', `/beedude/edges/${e.target.id()}`, {
+            target: '#modal-content',
+            swap: 'innerHTML'
+        })
+
+    });
+
+    // Abre modal para edicao de elementos
+    document.body.addEventListener("htmx:afterSwap", (e) => {
+        
+        //console.log('Elemento aberto:', e.target.id);
+
+        if (e.target.id === "modal-content") {
+
+            // Modal geral
+            const modalEl = document.getElementById("modal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+            } 
+        else if (e.target.id === 'modal-content3') {
+
+            // Modal grafico
+            const modalEl = document.getElementById("modal-grafico");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            }
+
+        });
+
+    // Salvar posicoes
+    cy.on('dragfree', 'node', (e) => {
+        const node = e.target;
+        salvarPosicao(node);
+    });
+
+    // Atualiza dados do grafico
+    function atualizaGrafico(event) {
+
+        const raw = JSON.parse(event.detail.xhr.responseText);
+        //console.log('Dados atualizados:', raw)
+        geraGrafico(raw.historico);
+
+        //const raw = JSON.parse(
+        //    document.getElementById("historico").textContent
+        //);
+
+    }
+
+    let chart = null;
+
+    function geraGrafico(raw, canvasId='grafico'){
+
+        //console.log('Dados:', raw);
+
+        // ===== monta datasets =====
+        const datasets = raw.map((serie, i)=>({
+            label: serie.label,
+            data: serie.data.map(p=>({x: p.x, y: Number(p.y)})),
+            borderColor: '#194d40',
+            backgroundColor: '#1fab9d',
+            fill: true,
+            borderWidth: 2,
+            tension: .4,
+            pointRadius: 3,
+            unit: serie.units
+        }));
+
+        // Destruindo grafico caso ja exista antes de recriar
+        const old = Chart.getChart("grafico");
+        if(old){
+            old.destroy();
+        }
+
+        chart = new Chart(document.getElementById('grafico'),{
+            type:"line",
+            data:{ datasets },
+            options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            interaction:{mode:"nearest",intersect:false},
+
+            plugins:{
+                legend:{ labels:{color:"#fff"} },
+                tooltip:{
+                    callbacks:{
+                        label: ctx=>{
+                            const u = ctx.dataset.unit;
+                            return ctx.dataset.label + ": " + formatValue(ctx.raw.y, u);
+                        }
+                    }
+                }
+            },
+            scales:{
+                x:{
+                    type: "time",
+                    ticks:{color: "#ccc"},
+                    grid:{color: "#333"}
+                },
+                y:{
+                    ticks:{
+                    color: "#ccc",
+                    callback: v=>{
+                    const unit = datasets[0].unit;
+                    return formatValue(v, unit);
+                    }
+                    },
+                    grid:{color: "#333"}
+                }
+            }
+            }
+        });
+
+    }
+
+    function salvarPosicao(node) {
+        const payload = {
+            id: node.id(),
+            x: node.position('x'),
+            y: node.position('y')
+        };
+
+        //console.log(payload)
+
+        enviar(payload);
+    }
+
+    // Requisicao post via htmx
+    const csrftoken = document.querySelector('meta[name="csrf_token"]').getAttribute('content');
+
+    function enviar(payload) {
+        fetch('/beedude/nodes/posicao', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(payload)
+        });
+    }
+
+    let nodeOrigem = null;
+    let edgeOrigem = null;
+
+    // Evento de menu no node
+    cy.on('cxttapstart', 'node', (e) => {
+        nodeOrigem = e.target;
+
+        const menu = document.getElementById('cy-menu-node');
+        menu.style.left = e.originalEvent.pageX + 'px';
+        menu.style.top = e.originalEvent.pageY + 'px';
+        menu.style.display = 'block';
+    });
+
+    // Evento de menu no edge
+    cy.on('cxttapstart', 'edge', (e) => {
+        edgeOrigem = e.target;
+
+        const menu = document.getElementById('cy-menu-edge');
+        menu.style.left = e.originalEvent.pageX + 'px';
+        menu.style.top = e.originalEvent.pageY + 'px';
+        menu.style.display = 'block';
+    });
+
+    // Evento de menu no geral
+    cy.on('cxttap', (e) => {
+        if (e.target !== cy) return;
+
+        //console.log('Menu GERAL');
+
+        const menu = document.getElementById('cy-menu-geral');
+        menu.style.left = e.originalEvent.pageX + 'px';
+        menu.style.top = e.originalEvent.pageY + 'px';
+        menu.style.display = 'block';
+    });
+
+    // Removendo submenus
+    document.addEventListener('click', () => {
+        document.getElementById('cy-menu-geral').style.display = 'none';
+        document.getElementById('cy-menu-node').style.display = 'none';
+        document.getElementById('cy-menu-edge').style.display = 'none';
+    });
+
+    // Opcao de animacao de fluxo da linha (edge) com base no status
+    let flowAnimationRunning = false;
+
+    function animateFlowByStatus(speed = 0.2) {
+
+        if (flowAnimationRunning) return;
+        flowAnimationRunning = true;
+
+        let offset = 0;
+
+        function step() {
+            offset -= speed;
+
+            const up = cy.edges('[status = "up"]');
+
+            up.style('line-dash-offset', offset);
+            up.style('opacity', 1);
+            requestAnimationFrame(step);
+        }
+
+        step();
+    }
+
+    // Opcao de animacao de pulse para os nodes com status down
+    let nodeAnimationRunning = false;
+
+    function animateNodeByStatus(){
+
+        if (nodeAnimationRunning) return;
+        nodeAnimationRunning = true;
+
+        let t = 0;
+
+        function step(){
+            t += 0.05;
+
+            const down = cy.nodes('[status="down"]');
+            const up = cy.nodes('[status!="down"]');
+
+            down.style('opacity', 0.4 + Math.sin(t)*0.3);
+            up.style('opacity', 1);
+
+            requestAnimationFrame(step);
+        }
+
+        step();
+    }
+
+    // Acao para o botao de edicao do node
+    document.getElementById('btn_edit_node').addEventListener('click', (e) =>{
+
+            //console.log(nodeOrigem.id());
+
+            htmx.ajax('GET', `/beedude/nodes/${nodeOrigem.id()}`, {
+                target: '#modal-content',
+                swap: 'innerHTML'
+            });
+
+    });
+
+    // Acao para o botao de remover oo node
+    document.getElementById('btn_remove_node').addEventListener('click', (e) =>{
+
+            //console.log(nodeOrigem.id());
+
+            htmx.ajax('GET', `/beedude/nodes/${nodeOrigem.id()}`, {
+                target: '#modal-content',
+                swap: 'innerHTML'
+            });
+
+    });
+
+    // Acao para o botao de edicao do edge
+    document.getElementById('btn_edit_edge').addEventListener('click', (e) =>{
+
+            //console.log(edgeOrigem.id());
+
+            htmx.ajax('GET', `/beedude/edges/${edgeOrigem.id()}`, {
+                target: '#modal-content',
+                swap: 'innerHTML'
+            });
+
+    });
+    
+    // Acao para o botao de remover o edge
+    document.getElementById('btn_remove_edge').addEventListener('click', (e) =>{
+
+            //console.log(edgeOrigem.id());
+
+            htmx.ajax('GET', `/beedude/edges/${edgeOrigem.id()}`, {
+                target: '#modal-content',
+                swap: 'innerHTML'
+            });
+
+    });
+    
+    // Acao para o botao de integracao do node
+    document.getElementById('btn_integra_node').addEventListener('click', (e) =>{
+
+        //console.log('Integra node:', nodeOrigem.id());
+
+        //if (e.target.id !== "modal-content") return;
+
+        const modalEl = document.getElementById("modal-integracao");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        htmx.ajax('GET', `{% url 'integracao_inicio' %}?elementoid=${nodeOrigem.id()}&elemento=node`, {
+            target: '#div-busca',
+            swap: 'innerHTML'
+        });
+
+    });
+
+    // Acao para o botao de integracao do edge
+    document.getElementById('btn_integra_edge').addEventListener('click', (e) =>{
+
+        //console.log('Integra edge:', edgeOrigem.id());
+
+        //if (e.target.id !== "modal-content") return;
+
+        const modalEl = document.getElementById("modal-integracao");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        htmx.ajax('GET', `{% url 'integracao_inicio' %}?elementoid=${edgeOrigem.id()}&elemento=edge`, {
+            target: '#div-busca',
+            swap: 'innerHTML'
+        });
+
+    });
+
+    // Mensagens toast
+    document.addEventListener('toast', e =>{
+        //console.log('Novo evento toast.');
+        // Precisamos fechar o modal:
+
+        mensagem = e.detail.mensagem
+        resultado = e.detail.resultado // ok ou erro
+        cor = e.detail.cor
+
+        html = `
+            <div class="toast align-items-center text-bg-${cor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                    ${mensagem}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `
+        // Fechando Modal se success
+        if (resultado === 'ok') {
+            const modalEl = document.getElementById("modal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.hide();
+            
+            const modalEl2 = document.getElementById("modal-integracao");
+            const modal2 = bootstrap.Modal.getOrCreateInstance(modalEl2);
+            modal2.hide();
+        // Recarregando pagina quando um mapa e excluido
+        } else if (resultado === 'reload') {
+            setTimeout(() => location.reload(), 3000);
+        }
+        
+        // Mostrando mensagem
+        const container = document.getElementById("container-toast");
+        container.insertAdjacentHTML("beforeend", html);
+
+        const toastEl = container.lastElementChild;
+        new bootstrap.Toast(toastEl).show();
+
+    });
+
+    try {
+        const graph = document.getElementById("cy");
+        const btn = document.getElementById("modo-edicao");
+
+        let editing = false;
+
+        btn.addEventListener("click", () => {
+            editing = !editing;
+
+            if (editing) {
+                graph.setAttribute("hx-trigger", "none");
+                btn.textContent = "Sair do modo edição";
+                htmx.process(graph);
+            } else {
+                graph.setAttribute("hx-trigger", "load, atualiza from:body, every 5s");
+                btn.textContent = "Modo edição";
+                htmx.process(graph);
+                //htmx.trigger(graph, "atualiza"); // opcional: forca refresh imediato
+            }
+        });
+        
+    } catch (error) {
+        
+    }
+
+    // ===== FORMATTER UNIVERSAL =====
+    function formatValue(v, unit){
+
+        v = Number(v);
+
+        if(unit === "%") return v.toFixed(2)+" %";
+
+        if(unit === "s")
+            return v < 1 ? (v*1000).toFixed(2)+" ms" : v.toFixed(2)+" s";
+
+        if(unit === "ms")
+            return v<1000 ? v+" ms" : (v/1000).toFixed(1)+" s";
+
+        if(unit === "bps"){
+            const u=["bps","Kbps","Mbps","Gbps"];
+            let i=0;
+            while(v>=1000 && i<u.length-1){ v/=1000;i++; }
+            return v.toFixed(1)+" "+u[i];
+        }
+
+        if(unit === 'B' & v === 0) return "0 B";
+
+        if(unit === "B"){
+            const u=["B","KB","MB","GB","TB","PB"];
+            const i = Math.floor(Math.log(v)/Math.log(1024));
+            return (v/Math.pow(1024,i)).toFixed(2)+" "+u[i];
+        }
+
+        return new Intl.NumberFormat('pt-BR',{notation:'compact'}).format(v);
+    }
+
+    // Fechando modal do grafico ao clicar ESC
+    document.addEventListener("keydown", e=>{
+        if(e.key!=="Escape") return;
+
+        const top = document.querySelector(".modal.show");
+
+        if(!top) return;
+
+        if (top.id === 'modal-grafico') {
+
+            bootstrap.Modal.getInstance(top)?.hide();
+
+        }
+    });
+
+    // Desabilitando o mover do mapa com o mouse, habilitamos so se for com dois dedos no mobile
+    /* cy.userPanningEnabled( false );
+
+    cy.on('touchmove', e =>{
+        console.log('Qut de toques:', e.originalEvent.touches.length)
+        if (e.originalEvent.touches.length === 1){
+            cy.userPanningEnabled( false );
+        } else if (e.originalEvent.touches.length === 2){
+            cy.userPanningEnabled( true );
+        }
+    });
+    */
+
+    // Habilita o log do htmx para debug
+    //htmx.logAll();
+
+</script>
+
+{% endblock %}

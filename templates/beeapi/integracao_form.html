@@ -1,0 +1,31 @@
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Integração</h1>
+    <button data-bs-dismiss="modal" type="button" class="btn-close" aria-label="Close"></button>
+</div>
+{{node.nodeid}}
+<form hx-post="{% url 'integracao_revisao'%}?elementoid={{elementoid}}&elemento={{elemento}}" hx-swap="innerHTML" hx-trigger="submit" method="post">
+    {% csrf_token %}
+    <div class="modal-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-12">
+                <label class="form-label" for="procura">Consultar Grupos</label>
+                <input class="form-control" placeholder=" &#xF002; Digite o nome do grupo" hx-get="{% url 'consulta_grupos' %}?elementoid={{elementoid}}&elemento={{elemento}}" hx-trigger="input changed delay:1s" hx-target="#select_grupos" required type="text" name="procura" id="procura" style="font-family:Arial, FontAwesome">
+            </div>
+            <!--
+            <div class="col-md-6">
+                <button id="form_busca" hx-post="{% url 'consulta_grupos' %}?elementoid={{elementoid}}&elemento={{elemento}}" hx-trigger="click" hx-swap="innerHTML" hx-target="#select_grupos" id="botao_consulta_form_busca" class="btn btn-primary w-100" type="button"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
+            </div>
+            -->
+        </div>
+
+        <div id="select_grupos"></div>
+
+        <div id="select_hosts" class="row g-2 mt-1"></div>
+
+        <div id="select_itens_triggers" class="row g-2 mt-1"></div>
+
+    </div>
+    <div class="modal-footer">
+
+    </div>
+</form>

@@ -1,0 +1,181 @@
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Edge - (MP: {{mapa.id}})</h1>
+    <button data-bs-dismiss="modal" type="button" class="btn-close" aria-label="Close"></button>
+</div>
+{% if f == 'edgeEdit' %}
+    <form hx-post="{% url 'edge_editar' edge.edgeid %}" hx-swap="innerHTML" hx-target="#modal-content">
+{% else %}
+    <form hx-post="{% url 'edge_add' %}" hx-swap="innerHTML" hx-target="#modal-content">
+{% endif %}
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-group {% if form.non_field_errors %}form-erros{% endif %}">
+                {{ form.non_field_errors }}
+            </div>
+            <div class="form-group {% if form.nome.errors %}form-erros{% endif %}">
+                <label for="id_nome">Nome:</label>
+                {{ form.nome }}
+                {{ form.nome.errors }}
+                {% if perms.beeapi.change_edge %}
+                <div class="form-text text-light mb-2">{{ form.nome.help_text }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group {% if form.descricao.errors %}form-erros{% endif %}">
+                <label for="id_descricao">Descrição:</label>
+                {{ form.descricao }}
+                {{ form.descricao.errors }}
+            </div>
+            {% if f == 'edgeEdit' %}
+            <p>
+            <div class="table-responsive">
+                <label>Tabela de Itens:</label>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                        <th scope="col">Itemid</th>
+                        <th scope="col">Host</th>
+                        <th scope="col">Item</th>
+                        <th scope="col">Valor</th>
+                        <th scope="col">Coleta</th>
+                        {% if perms.beeapi.view_edge %}
+                        <th class="text-center" scope="col">Ações</th>
+                        {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for k,v in itens %}
+                        <tr>
+                        <th scope="row">{{k}}</th>
+                        <td>{{v.host}}</td>
+                        <td>{{v.nome}}</td>
+                        <td>{{v.lastvalue}}</td>
+                        <td>{{v.lastclock_dt}}</td>
+                        <td class="text-center">
+                            {% if perms.beeapi.view_edge %}
+                            <button hx-get="{% url 'grafico' %}" hx-include="#mapaid" hx-vals='{"itemid": {{k}}}' hx-swap="innerHTML" hx-target="#modal-content3" class="btn btn-sm" style="background-color: #19656e;" title="Gráfico">
+                                <i class="fa fa-chart-line"></i>
+                            </button>
+                            {% endif %}
+                            {% if perms.beeapi.change_edge %}
+                            <button hx-get="{% url 'integracao_inicio' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge"}' hx-swap="innerHTML" hx-target="#modal-content" class="btn btn-success btn-sm" title="Novo">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                            {% endif %}
+                            {% if perms.beeapi.change_edge %}
+                            <button hx-get="{% url 'edita_itens_triggers' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge", "itemid": "{{k}}"}' hx-swap="none" class="btn btn-danger btn-sm" title="Remover">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">Itens não encontrados</td>
+                            <td class="text-center">
+                                {% if perms.beeapi.change_edge %}
+                                <button hx-get="{% url 'integracao_inicio' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge"}' hx-swap="innerHTML" hx-target="#modal-content" class="btn btn-success btn-sm" title="Novo">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-responsive">
+                <label>Tabela de Triggers:</label>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                        <th scope="col">Triggerid</th>
+                        <th scope="col">Host</th>
+                        <th scope="col">Trigger</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Modo</th>
+                        {% if perms.beeapi.change_edge %}
+                        <th class="text-center" scope="col">Ações</th>
+                        {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for k,v in triggers %}
+                        <tr>
+                        <th scope="row">{{k}}</th>
+                        <td>{{v.host}}</td>
+                        <td>{{v.nome}}</td>
+                        {% if v.status == 'up' %}
+                        <td class="text-success"><i class="fa-solid fa-toggle-on"></i> {{v.status}}</td>
+                        {% elif v.status == 'down' %}
+                            <td class="text-danger"><i class="fa-solid fa-toggle-off"></i> {{v.status}}</td>
+                        {% else %}
+                        <td class="text-secondary"><i class="fa-solid fa-circle-exclamation"></i> {{v.status}}</td>
+                        {% endif %}
+                        <td>{{modo}}</td>
+                        <td class="text-center">
+                            {% if perms.beeapi.add_edge %}
+                            <button hx-get="{% url 'integracao_inicio' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge"}' hx-swap="innerHTML" hx-target="#modal-content" class="btn btn-success btn-sm" title="Novo">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                            {% endif %}
+                            {% if perms.beeapi.change_edge %}
+                            <button hx-get="{% url 'modo' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge", "mapaid": "{{mapa.id}}"}' hx-swap="innerHTML" hx-targe="#modal-content" class="btn btn-primary btn-sm" title="Editar">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            {% endif %}
+                            {% if perms.beeapi.change_edge %}
+                            <button hx-get="{% url 'edita_itens_triggers' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge", "triggerid": "{{k}}"}' hx-swap="none" class="btn btn-danger btn-sm" title="Remover">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">Triggers não encontradas</td>
+                            {% if perms.beeapi.change_edge %}
+                            <td class="text-center">
+                                <button hx-get="{% url 'integracao_inicio' %}" hx-vals='{"elementoid": "{{edge.edgeid}}", "elemento": "edge"}' hx-swap="innerHTML" hx-target="#modal-content" class="btn btn-success btn-sm" title="Novo">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            <div class="form-group {% if form.label_template.errors %}form-erros{% endif %}">
+                <label for="id_label_template">Label Template:</label>
+                {{ form.label_template }}
+                {{ form.label_template.errors }}
+            </div>
+            <div class="form-group {% if form.source.errors %}form-erros{% endif %}">
+                <label for="id_source">Source:</label>
+                {{ form.source }}
+                {{ form.source.errors }}
+            </div>
+            <div class="form-group {% if form.target.errors %}form-erros{% endif %}">
+                <label for="id_target">Target:</label>
+                {{ form.target }}
+                {{ form.target.errors }}
+            </div>
+            <div class="form-group {% if form.mapa.errors %}form-erros{% endif %}">
+                <label for="id_mapa">Mapa:</label>
+                {{ form.mapa }}
+                {{ form.mapa.errors }}
+            <p>
+        </div>   
+
+        <div class="modal-footer">
+            <button data-bs-dismiss="modal" type="button" class="btn btn-secondary" style="background-color: #334155;"><i class="fa-solid fa-close"></i> Fechar</button>
+            {% if perms.beeapi.change_edge %}
+            <button type="submit" name="action" value="salvar" class="btn btn-primary"><i class="fa fa-save"></i> Salvar</button>
+            {% endif %}
+            {% if f == 'edgeEdit' and perms.beeapi.delete_edge %}
+            <button type="submit" name="action" value="remover" class="btn btn-danger"><i class="fa fa-trash"></i> Remover</button>
+            {% endif %}
+        </div>
+    </form>
+</div>

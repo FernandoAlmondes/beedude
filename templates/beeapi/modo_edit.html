@@ -1,0 +1,27 @@
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Trigger Modo - (MP: {{mapaid}})</h1>
+    <button data-bs-dismiss="modal" type="button" class="btn-close" aria-label="Close"></button>
+</div>
+    <form hx-post="{% url 'modo' %}" hx-swap="none">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-group {% if form.non_field_errors %}form-erros{% endif %}">
+                {{ form.non_field_errors }}
+            </div>
+            <input class="form-control" hidden type="text" name="elemento" id="elemento" value="{{elemento}}">
+            <input class="form-control" hidden type="text" name="elementoid" id="elementoid" value="{{elementoid}}">
+            <label for="op">Modo do análise</label>
+            <select class="form-select" name="op" id="op">
+                <option value="any">Any</option>
+                <option value="all">All</option>
+            </select>
+        </div>   
+
+        <div class="modal-footer">
+            <button data-bs-dismiss="modal" type="button" class="btn btn-secondary" style="background-color: #334155;" ><i class="fa-solid fa-close"></i> Fechar</button>
+            {% if perms.beeapi.change_node or perms.beeapi.change_edge %}
+            <button type="submit" name="action" value="salvar" class="btn btn-primary"><i class="fa fa-save"></i> Salvar</button>
+            {% endif %}
+        </div>
+    </form>
+</div>

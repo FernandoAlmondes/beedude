@@ -1,0 +1,7 @@
+
+<select class="form-select" multiple name="itens" required id="itens">
+    {% for i in itens %}
+        <option value="{{i.itemid}}">{{i.nome}}</option>
+    {% endfor %}
+</select>
+

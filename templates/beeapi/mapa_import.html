@@ -1,0 +1,39 @@
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Importar Novo Mapa</h1>
+    <button data-bs-dismiss="modal" type="button" class="btn-close" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+
+    <form hx-post="{% url 'mapa_import' %}" hx-trigger="submit" hx-swap="innerHTML" hx-target="#modal-content" class="row g-3" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="col-md-12">
+            <label class="form-label" for="mapa_nome">Nome do mapa</label>
+            <input required class="form-control" type="text" name="mapa_nome" id="mapa_nome" placeholder="Informe o nome do mapa">
+        </div>
+        <div class="col-md-12">
+
+            <label for="servidor">Selecione o servidor do mapa</label>
+            <select required class="form-control" name="servidor" id="servidor">
+            {% for s in servidores %}
+                <option value="{{s.id}}">{{s.nome}}</option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-12">
+            <label class="form-label" for="arquivo">Selecione o arquivo json para importar</label>
+            <input class="form-control" type="file" name="arquivo" accept=".json" required>
+        </div>
+        <div class="col-md-6">
+            <button class="btn btn-primary w-100" type="submit"><i class="fa-solid fa-upload"></i> Importar</button>
+        </div>
+        <div class="col-md-6">
+            <button data-bs-dismiss="modal" type="button" class="btn btn-secondary w-100" style="background-color: #334155;" ><i class="fa-solid fa-close"></i> Fechar</button>
+        </div>
+    </form>
+
+</div>
+
+<div class="modal-footer">
+
+</div>

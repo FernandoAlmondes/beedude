@@ -1,0 +1,72 @@
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Nome</th>
+          <th scope="col">Source</th>
+          <th scope="col">Target</th>
+          <th scope="col">Mapa</th>
+          <th scope="col">Status</th>
+          {% if perms.beeapi.view_edge %}
+          <th class="text-center" scope="col">Ações</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="table-group-divider">
+        {% for edge in page_obj %}
+        <tr>
+          <th scope="row">{{edge.id}}</th>
+          <td>{{edge.nome}}</td>
+          <td>{{edge.source}}</td>
+          <td>{{edge.target}}</td>
+          <td>{{edge.mapa}}</td>
+          {% if edge.status == 'up' %}
+            <td class="text-success"><i class="fa-solid fa-toggle-on"></i> {{edge.status}}</td>
+          {% elif edge.status == 'down' %}
+              <td class="text-danger"><i class="fa-solid fa-toggle-off"></i> {{edge.status}}</td>
+          {% else %}
+            <td class="text-secondary"><i class="fa-solid fa-circle-exclamation"></i> {{edge.status}}</td>
+          {% endif %}
+            <td class="text-center">
+              {% if perms.beeapi.view_edge %}
+                <button hx-get="{% url 'edge_editar' edge.edgeid %}" hx-target="#modal-content" hx-swap="innerHTML" class="btn btn-success btn-sm" title="Visualizar">
+                    <i class="fa fa-eye"></i>
+                </button>
+              {% endif %}
+              {% if perms.beeapi.change_edge %}
+                <button hx-get="{% url 'edge_editar' edge.edgeid %}" hx-target="#modal-content" hx-swap="innerHTML" class="btn btn-primary btn-sm" title="Editar">
+                    <i class="fa fa-edit"></i>
+                </button>
+              {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">Edges não encontrados</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div>
+      {% if page_obj.has_previous %}
+        <button class="btn btn-secondary btn-sm"
+          hx-get="{% url 'edge_listagem' %}?page={{ page_obj.previous_page_number }}"
+          hx-target="#tabela"
+          hx-include="#mapaid"
+          hx-swap="innerHTML">
+          <i class="fa-solid fa-backward"></i>
+        </button>
+      {% endif %}
+
+      <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <button class="btn btn-secondary btm-sm"
+          hx-get="{% url 'edge_listagem' %}?page={{ page_obj.next_page_number }}"
+          hx-target="#tabela"
+          hx-include="#mapaid"
+          hx-swap="innerHTML">
+          <i class="fa-solid fa-forward"></i>
+        </button>
+      {% endif %}
+    </div>

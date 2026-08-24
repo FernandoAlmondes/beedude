@@ -1,0 +1,32 @@
+<div class="modal-header">
+    {% if f == 'mapaEdit' %}
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Mapa - (MP: {{mapa.id}})</h1>
+    {% else %}
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Novo Mapa</h1>
+    {% endif %}
+    <button data-bs-dismiss="modal" type="button" class="btn-close" aria-label="Close"></button>
+</div>
+{% if f == 'mapaEdit' %}
+    <form hx-post="{% url 'mapa_editar' mapa.id %}" hx-swap="innerHTML" hx-target="#modal-content">
+{% else %}
+    <form hx-post="{% url 'mapa_add' %}" hx-swap="innerHTML" hx-target="#modal-content">
+{% endif %}
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-group {% if form.non_field_errors %}form-erros{% endif %}">
+                {{ form.non_field_errors }}
+            </div>
+            {{ form.as_p }}
+        </div>   
+
+        <div class="modal-footer">
+            <button data-bs-dismiss="modal" type="button" class="btn btn-secondary" style="background-color: #334155;" ><i class="fa-solid fa-close"></i> Fechar</button>
+            {% if perms.beeapi.change_mapa %}
+            <button type="submit" name="action" value="salvar" class="btn btn-primary"><i class="fa fa-save"></i> Salvar</button>
+            {% endif %}
+            {% if f == 'mapaEdit' and perms.beeapi.delete_mapa %}
+            <button type="submit" name="action" value="remover" class="btn btn-danger"><i class="fa fa-trash"></i> Remover</button>
+            {% endif %}
+        </div>
+    </form>
+</div>

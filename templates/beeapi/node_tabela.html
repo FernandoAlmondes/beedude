@@ -1,0 +1,70 @@
+<table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Nome</th>
+        <th scope="col">Icone</th>
+        <th scope="col">Mapa</th>
+        <th scope="col">Status</th>
+        {% if perms.beeapi.view_node %}
+        <th class="text-center" scope="col">Ações</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+      {% for node in page_obj %}
+      <tr>
+        <th scope="row">{{node.id}}</th>
+        <td>{{node.nome}}</td>
+        <td>{{node.icone}}</td>
+        <td>{{node.mapa}}</td>
+        {% if node.status == 'up' %}
+          <td class="text-success"><i class="fa-solid fa-toggle-on"></i> {{node.status}}</td>
+        {% elif node.status == 'down' %}
+            <td class="text-danger"><i class="fa-solid fa-toggle-off"></i> {{node.status}}</td>
+        {% else %}
+          <td class="text-secondary"><i class="fa-solid fa-circle-exclamation"></i> {{node.status}}</td>
+        {% endif %}
+          <td class="text-center">
+            {% if perms.beeapi.view_node %}
+              <button hx-get="{% url 'node_editar' node.nodeid %}" hx-target="#modal-content" hx-swap="innerHTML" class="btn btn-success btn-sm" title="Visualizar">
+                  <i class="fa fa-eye"></i>
+              </button>
+            {% endif %}
+            {% if perms.beeapi.change_node %}
+              <button hx-get="{% url 'node_editar' node.nodeid %}" hx-target="#modal-content" hx-swap="innerHTML" class="btn btn-primary btn-sm" title="Editar">
+                  <i class="fa fa-edit"></i>
+              </button>
+            {% endif %}
+          </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">Nodes não encontrados</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+<div>
+  {% if page_obj.has_previous %}
+    <button class="btn btn-secondary btn-sm"
+      hx-get="{% url 'node_listagem' %}?page={{ page_obj.previous_page_number }}"
+      hx-target="#tabela"
+      hx-include="#mapaid"
+      hx-swap="innerHTML">
+      <i class="fa-solid fa-backward"></i>
+    </button>
+  {% endif %}
+
+  <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <button class="btn btn-secondary btn-sm"
+      hx-get="{% url 'node_listagem' %}?page={{ page_obj.next_page_number }}"
+      hx-target="#tabela"
+      hx-include="#mapaid"
+      hx-swap="innerHTML">
+      <i class="fa-solid fa-forward"></i>
+    </button>
+  {% endif %}
+</div>

@@ -1,0 +1,40 @@
+
+{% extends 'beeapi/base.html' %}
+
+{% block content %}
+<div class="row mx-auto" style="width: 800px; align-items: center;">
+    <div class="card shadow-lg border-0 p-0" style="margin-top: -20vh;" >
+        <div class="row g-0">
+            <div class="col-md-6 p-5 text-white bg-black rounded-start">
+                <img src="https://beesolutions.com.br/static/home/images/bee/so-logo.png" width="40" class="mb-4">
+                <h2>Bee Solutions</h2>
+                <p class="text-secondary">Beedude - Mapas de Rede</p>
+            </div>
+
+            <div class="col-md-6 p-5">
+                {% csrf_token %}
+                <h4 class="text-center mb-3">Faça Login</h4>
+                {% if error %}
+                    <p style="color:red;">{{ error }}</p>
+                {% endif %}
+
+                <form method="post" style="min-width: 50%;">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nome de usuário</label>
+                    <input required type="text" class="form-control" name="username" id="username" placeholder="Digite seu nome de usuário" aria-describedby="seu-usuario">
+                    <div id="seu-usuario" class="form-text">Nunca compartilhe o seu usuário.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input required type="password" class="form-control" placeholder="Digite sua senha" name="password" id="password">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

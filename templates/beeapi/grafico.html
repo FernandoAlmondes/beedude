@@ -1,0 +1,20 @@
+
+<div class="modal-header border-secondary">
+    <h5 class="modal-title">Histórico do Item</h5>
+    <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body" style="max-height: 80vh;">
+    <canvas id="grafico"></canvas>
+</div>
+
+<div class="modal-footer">
+    <button data-bs-dismiss="modal" type="button" class="btn btn-secondary" style="background-color: #334155;" ><i class="fa-solid fa-close"></i> Fechar</button>
+</div>
+
+<div hx-get="{% url 'historico' %}" hx-on::after-request="atualizaGrafico(event)" hx-trigger="load, every 5s [document.querySelector('#modal-grafico').classList.contains('show')]" hx-include="#mapaid" hx-vals='{"itemid": {{itemid}}}' hx-target="#historico" hx-swap="none">
+
+</div>
+
+<!--Atualizando dados de historico via htmx -->
+{{ historico|json_script:"historico" }}

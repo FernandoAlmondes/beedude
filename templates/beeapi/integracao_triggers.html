@@ -1,0 +1,5 @@
+<select class="form-select" multiple name="triggers" required id="triggers">
+    {% for t in triggers %}
+        <option value="{{t.triggerid}}">{{t.nome}}</option>
+    {% endfor %}
+</select>
