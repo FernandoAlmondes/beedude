@@ -95,7 +95,7 @@ chmod +x beedude-instalacao.sh
 ./beedude-instalacao.sh
 ```
 
-- Ajuste no settings.py para o ip do seu servidor
+- Adicione no settings.py logo abaixo da linha WSGI_APPLICATION e ajuste para o ip do seu servidor
 ```shell
 nano /opt/bee/beedude/beesoft/settings.py
 CSRF_TRUSTED_ORIGINS = ['http://localhost:9000', 'http://ip-do-seu-servidor-aqui:9000']
