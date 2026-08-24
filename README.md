@@ -95,6 +95,12 @@ chmod +x beedude-instalacao.sh
 ./beedude-instalacao.sh
 ```
 
+- Ajuste no settings.py para o ip do seu servidor
+```shell
+nano /opt/bee/beedude/beesoft/settings.py
+CSRF_TRUSTED_ORIGINS = ['http://localhost:9000', 'http://ip-do-seu-servidor-aqui:9000']
+```
+
 - Você pode acessar o Beedude pelo ip do seu servidor na porta 9000 (Credenciais padrões: beesoft / beesoft).
 ```shell
 http://seu-ip:9000
